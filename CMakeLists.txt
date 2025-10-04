@@ -7,8 +7,16 @@ project(RealtimeParallelKMeansSegmentation)
 
 # The OpenCV library is required for this project, for facilitating the real-time image processing and segmentation tasks.
 find_package(OpenCV REQUIRED)
-# Include OpenCV headers, to allow access to OpenCV functions and classes.
+
+find_package(CUDA REQUIRED)
+
+# Find Microsoft MPI
+set(MPI_CXX_INCLUDE_PATH "C:/Program Files (x86)/Microsoft SDKs/MPI/Include")
+set(MPI_CXX_LIBRARIES "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpi.lib")
+# Include OpenCV and MPI headers, to allow access to both OpenCV and MS MPI functions and classes.
 include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${MPI_CXX_INCLUDE_PATH})
+include_directories(${CUDA_INCLUDE_DIRS})
 
 # Add the executable target for the project, specifying the source files to be compiled.
 add_executable(realtime_parallel_kmeans_segmentation
@@ -26,4 +34,4 @@ add_executable(realtime_parallel_kmeans_segmentation
 
 # Link the OpenCV libraries to the executable target, ensuring that the necessary OpenCV functionality is available at runtime.
 target_include_directories(realtime_parallel_kmeans_segmentation PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(realtime_parallel_kmeans_segmentation ${OpenCV_LIBS})
+target_link_libraries(realtime_parallel_kmeans_segmentation ${OpenCV_LIBS} ${MPI_CXX_LIBRARIES})

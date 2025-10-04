@@ -52,7 +52,6 @@ void processRows(const cv::Mat& frame, cv::Mat& out,
     }
 }
 
-
 cv::Mat segmentFrameWithKMeans_thr(
     const cv::Mat& frame,
     int k,
