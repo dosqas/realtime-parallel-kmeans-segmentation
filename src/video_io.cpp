@@ -27,7 +27,6 @@ void showWebcamFeed() {
     const float color_scale = 1.0f;
     const float spatial_scale = 0.5f;
 
-    enum Backend { BACKEND_SEQ = 0, BACKEND_CUDA = 1, BACKEND_THR = 2, BACKEND_MPI = 3 };
     Backend backend = BACKEND_SEQ;
 
     const std::string windowName = "Realtime Segmentation";
@@ -62,18 +61,7 @@ void showWebcamFeed() {
         int k = (std::max)(k_min, (std::min)(k_max, k_trackbar));
 
         cv::Mat seg;
-        switch (backend) {
-        case BACKEND_SEQ:
-            seg = segmentFrameWithKMeans(frame, k, sample, color_scale, spatial_scale);
-            break;
-        case BACKEND_CUDA:
-        case BACKEND_THR:
-        case BACKEND_MPI:
-        default:
-            // TODO: replace with respective backend implementations
-            seg = segmentFrameWithKMeans(frame, k, sample, color_scale, spatial_scale);
-            break;
-        }
+        seg = segmentFrameWithKMeans(frame, k, sample, backend, color_scale, spatial_scale);
 
         if (seg.size() != frame.size()) {
             cv::resize(seg, seg, frame.size(), 0, 0, cv::INTER_NEAREST);
@@ -101,9 +89,9 @@ void showWebcamFeed() {
         char c = (char)cv::waitKey(1);
         if (c == 27) break;
         if (c == '1') backend = BACKEND_SEQ;
-        if (c == '2') backend = BACKEND_CUDA;
-        if (c == '3') backend = BACKEND_THR;
-        if (c == '4') backend = BACKEND_MPI;
+        if (c == '2') backend = BACKEND_THR;
+        if (c == '3') backend = BACKEND_MPI;
+        if (c == '4') backend = BACKEND_CUDA;
     }
 
     cap.release();

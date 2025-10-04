@@ -16,8 +16,13 @@ add_executable(realtime_parallel_kmeans_segmentation
     src/video_io.cpp
     src/coreset.cpp
     src/rcc.cpp
+    src/utils.cpp
+    src/clustering.cpp
     seq/clustering_seq.cpp
- "threads/clustering_thr.cpp")
+    threads/clustering_thr.cpp
+    mpi/clustering_mpi.cpp
+    gpu/clustering_cuda.cpp
+ "threads/clustering_thr.cpp" "src/clustering.cpp" "mpi/clustering_mpi.cpp" "gpu/clustering_cuda.cpp")
 
 # Link the OpenCV libraries to the executable target, ensuring that the necessary OpenCV functionality is available at runtime.
 target_include_directories(realtime_parallel_kmeans_segmentation PRIVATE ${CMAKE_SOURCE_DIR}/include)

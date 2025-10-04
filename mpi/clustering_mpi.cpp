@@ -3,7 +3,7 @@
 #include "utils.hpp"
 #include <random>
 
-cv::Mat segmentFrameWithKMeans_seq(
+cv::Mat segmentFrameWithKMeans_mpi(
 	const cv::Mat& frame,
 	int k,
 	int sample_size,
