@@ -24,7 +24,8 @@ void showWebcamFeed()
     cv::Mat frame;
 
     int k_trackbar = 5;
-    const int k_min = 1;
+	int last_k_trackbar = k_trackbar;
+    const int k_min = 2;
     const int k_max = 12;
     const int sample = 2000;
     const float color_scale = 1.0f;
@@ -84,11 +85,12 @@ void showWebcamFeed()
         lastTick = now;
         if (dt > 0) fps = 1.0 / dt;
 
-        // Reset FPS history if backend changed
-        if (backend != lastBackend) {
+        // Reset FPS history if backend changed or if K changed
+        if (backend != lastBackend || k_trackbar != last_k_trackbar) {
             fpsHistory.clear();
             minFps = maxFps = fps;
             lastBackend = backend;
+			last_k_trackbar = k_trackbar;
         }
 
         // Add current FPS to history
