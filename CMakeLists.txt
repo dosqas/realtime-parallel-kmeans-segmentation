@@ -2,24 +2,27 @@
 # This CMakeLists.txt file sets up the build configuration for the Realtime Parallel K-Means Segmentation project.
 # It specifies the minimum required CMake version, project name, source files, and dependencies.
 # The most recent version of CMake can be downloaded from https://cmake.org/download/
-cmake_minimum_required(VERSION 3.18)
-project(RealtimeParallelKMeansSegmentation LANGUAGES CXX CUDA)
+cmake_minimum_required(VERSION 3.18)    # Even though 3.18 is an older version, it is sufficient for our purposes
+project(RealtimeParallelKMeansSegmentation LANGUAGES CXX CUDA)    # Project name and languages used
 
-# The OpenCV library is required for this project, for facilitating the real-time image processing and segmentation tasks.
+# Find dependencies (OpenCV and CUDA)
 find_package(OpenCV REQUIRED)
-
 find_package(CUDA REQUIRED)
 
-# Find Microsoft MPI
-set(MPI_CXX_INCLUDE_PATH "C:/Program Files (x86)/Microsoft SDKs/MPI/Include")
-set(MPI_CXX_LIBRARIES "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpi.lib")
-# Include OpenCV and MPI headers, to allow access to both OpenCV and MS MPI functions and classes.
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${MPI_CXX_INCLUDE_PATH})
+# Default Microsoft MPI paths (if installed elsewhere, modify these paths accordingly!)
+# Used for compiling and linking MPI programs on Windows
+set(MPI_INCLUDE_DIR "C:/Program Files (x86)/Microsoft SDKs/MPI/Include")
+set(MPI_LIB "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpi.lib")
 
-enable_language(CUDA)
+# Include directories for OpenCV and MPI, alongside CMake, to be able to find header files
+# and use classes and methods defined in those libraries
+include_directories(
+    ${OpenCV_INCLUDE_DIRS}
+    ${MPI_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/include
+)
 
-# Add the executable target for the project, specifying the source files to be compiled.
+# Add executable and specify source files used to build it
 add_executable(realtime_parallel_kmeans_segmentation
     src/main.cpp
     src/video_io.cpp
@@ -33,20 +36,17 @@ add_executable(realtime_parallel_kmeans_segmentation
     src/clustering/clustering_cuda.cu
 )
 
-set_source_files_properties(gpu/clustering_cuda.cu PROPERTIES LANGUAGE CUDA)
-
-
-# Link the OpenCV libraries to the executable target, ensuring that the necessary OpenCV functionality is available at runtime.
-target_include_directories(realtime_parallel_kmeans_segmentation
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
-        ${CUDA_INCLUDE_DIRS}
-)
+# CUDA properties to ensure proper compilation (we must compile our .cu files with the CUDA compiler)
+set_source_files_properties(src/clustering/clustering_cuda.cu PROPERTIES LANGUAGE CUDA)
 set_target_properties(realtime_parallel_kmeans_segmentation PROPERTIES
-    CUDA_SEPARABLE_COMPILATION ON
-    CUDA_STANDARD 14
-    CUDA_STANDARD_REQUIRED ON
+    CUDA_SEPARABLE_COMPILATION ON       # Enable separable compilation for CUDA (different from our .cpp files)
+    CUDA_STANDARD 14                    # Use C++14 standard for CUDA files
+    CUDA_STANDARD_REQUIRED ON           # Enforce the use of the specified C++ standard
+    CUDA_ARCHITECTURES "native"         # Specify the target architecture (native for the current machine)
 )
 
-set_target_properties(realtime_parallel_kmeans_segmentation PROPERTIES CUDA_ARCHITECTURES "native")
-target_link_libraries(realtime_parallel_kmeans_segmentation ${OpenCV_LIBS} ${MPI_CXX_LIBRARIES})
+# Link the OpenCV and MPI libraries with our executable to resolve external references
+target_link_libraries(realtime_parallel_kmeans_segmentation
+    ${OpenCV_LIBS}
+    ${MPI_LIB}
+)
