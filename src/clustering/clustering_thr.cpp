@@ -7,10 +7,14 @@
 #include <vector>
 
 // Worker function: process rows [rStart, rEnd)
-void processRows(const cv::Mat& frame, cv::Mat& out,
+void processRows(
+    const cv::Mat& frame, 
+    cv::Mat& out,
     const std::vector<cv::Vec<float, 5>>& centers,
-    int rStart, int rEnd,
-    float color_scale, float spatial_scale)
+    int rStart, 
+    int rEnd,
+    float color_scale, 
+    float spatial_scale)
 {
     int cols = frame.cols;
     int rows = frame.rows;

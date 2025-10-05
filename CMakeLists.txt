@@ -14,11 +14,14 @@ find_package(CUDA REQUIRED)
 set(MPI_INCLUDE_DIR "C:/Program Files (x86)/Microsoft SDKs/MPI/Include")
 set(MPI_LIB "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpi.lib")
 
-# Include directories for OpenCV and MPI, alongside CMake, to be able to find header files
+enable_language(CUDA)
+
+# Include directories for OpenCV, MPI, CUDA and CMake, to be able to find header files
 # and use classes and methods defined in those libraries
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
     ${MPI_INCLUDE_DIR}
+    ${CUDA_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include
 )
 

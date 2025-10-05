@@ -3,12 +3,12 @@
 
 // A point in a coreset represents a compressed version of one (when we sample the frame initially) or more pixels 
 // (when we merge coresets).
-// - `rgb`: the average RGB color of the sampled pixel(s).
+// - `bgr`: the average BGR color of the sampled pixel(s).
 // - `x, y`: the normalized spatial coordinates of the pixel in the frame ([0, 1] range).
 // - `weight`: how many original pixels this point represents.
 //    (e.g., if we sampled 1,000 out of 1,000,000 pixels, each sampled point has weight ~1000).
 struct CoresetPoint {
-    cv::Vec3f rgb;
+    cv::Vec3f bgr;
     float x, y;
     float weight;
 };

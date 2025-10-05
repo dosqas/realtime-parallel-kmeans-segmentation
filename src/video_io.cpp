@@ -8,7 +8,8 @@
 #include <windows.h>
 #endif
 
-void showWebcamFeed() {
+void showWebcamFeed() 
+{
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
         std::cerr << "Error: Could not open camera." << std::endl;

@@ -3,12 +3,18 @@
 #include <opencv2/opencv.hpp>
 #include <mpi.h>
 
-int main(int argc, char** argv) {
+// Entry point
+int main(
+	int argc, 
+	char** argv) 
+{
+	// Initialize our MPI environment
     MPI_Init(&argc, &argv);
 
-	// Start webcam feed
+	// Display the webcam feed using OpenCV
     showWebcamFeed();
 
+	// Finalizes and cleans the MPI environment.
 	MPI_Finalize();
 
     return 0;

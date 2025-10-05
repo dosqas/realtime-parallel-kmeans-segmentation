@@ -2,14 +2,21 @@
 #include "coreset.hpp"
 #include <unordered_set>
 
-static void deleteSubtree(RCCNode* node) {
-    if (!node) return;
-    deleteSubtree(node->left);
-    deleteSubtree(node->right);
-    delete node;
+// Delete a subtree of our RCC. Used in cleaning up when deleting and pruning the RCC
+static void deleteSubtree(
+    RCCNode* node) 
+{
+	if (!node) return;              // Base case - RCCNode is null, meaning we reached the end of the tree
+    deleteSubtree(node->left);      // Recursively call the delete function on the left
+    deleteSubtree(node->right);     // and right subtrees
+    delete node;                    // Once we return from the recursion, we delete the node
 }
 
-void RCC::insertLeaf(const Coreset& leafCoreset, int sample_size) {
+// Insert a leaf
+void RCC::insertLeaf(
+    const Coreset& leafCoreset, 
+    int sample_size) 
+{
     RCCNode* carry = new RCCNode(leafCoreset);
 
     if (levels.empty()) {
@@ -46,7 +53,11 @@ void RCC::insertLeaf(const Coreset& leafCoreset, int sample_size) {
     root = newRoot;
 }
 
-RCCNode* RCC::mergeNodes(RCCNode* nodeA, RCCNode* nodeB, int sample_size) {
+RCCNode* RCC::mergeNodes(
+    RCCNode* nodeA,
+    RCCNode* nodeB, 
+    int sample_size) 
+{
     if (!nodeA) return nodeB;
     if (!nodeB) return nodeA;
     Coreset merged = mergeCoresets(nodeA->coreset, nodeB->coreset, sample_size);
@@ -56,12 +67,14 @@ RCCNode* RCC::mergeNodes(RCCNode* nodeA, RCCNode* nodeB, int sample_size) {
     return parent;
 }
 
-Coreset RCC::getRootCoreset() const {
+Coreset RCC::getRootCoreset() const 
+{
     if (!root) return Coreset{};
     return root->coreset;
 }
 
-RCC::~RCC() {
+RCC::~RCC() 
+{
     // Delete unique subtrees from the level array to avoid double-free
     // Track deletions by marking pointers we already removed.
     std::unordered_set<RCCNode*> seen;

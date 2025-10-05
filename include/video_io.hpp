@@ -1,4 +1,4 @@
 #pragma once
 
-// Function that shows the live webcam feed, alongside the segmented output and a slider to adjust the k value of k-means
+// Function that displays the live webcam feed, alongside the segmented output and a slider to adjust the K value of K-means
 void showWebcamFeed();

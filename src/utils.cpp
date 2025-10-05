@@ -1,7 +1,12 @@
 #include "utils.hpp"
 #include "coreset.hpp"
 
-cv::Vec<float, 5> makeFeature(const cv::Vec3f& bgr, float x01, float y01, float color_scale, float spatial_scale)
+cv::Vec<float, 5> makeFeature(
+	const cv::Vec3f& bgr, 
+	float x01, 
+	float y01, 
+	float color_scale, 
+	float spatial_scale) 
 {
 	return cv::Vec<float, 5>(
 		bgr[0] * color_scale, 
@@ -28,7 +33,7 @@ std::vector<cv::Vec<float, 5>> computeKMeansCenters(
 	cv::Mat samples(static_cast<int>(coreset.points.size()), 5, CV_32F);
 	for (int i = 0; i < (int)coreset.points.size(); ++i) {
 		const CoresetPoint& p = coreset.points[i];
-		cv::Vec<float, 5> f = makeFeature(p.rgb, p.x, p.y, color_scale, spatial_scale);
+		cv::Vec<float, 5> f = makeFeature(p.bgr, p.x, p.y, color_scale, spatial_scale);
 		for (int d = 0; d < 5; ++d) samples.at<float>(i, d) = f[d];
 	}
 
