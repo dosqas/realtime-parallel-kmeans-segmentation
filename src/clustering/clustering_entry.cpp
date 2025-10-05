@@ -1,6 +1,7 @@
 #include "clustering.hpp"
 #include "clustering_backends.hpp"
 
+// Entry point to segment a frame using K-means clustering with different backends
 cv::Mat segmentFrameWithKMeans(
     const cv::Mat& frame,
     int k,
@@ -9,6 +10,7 @@ cv::Mat segmentFrameWithKMeans(
     float color_scale,
     float spatial_scale)
 {
+	// Dispatch to the appropriate backend implementation
     switch (backend) {
     case BACKEND_SEQ:
         return segmentFrameWithKMeans_seq(frame, k, sample_size, color_scale, spatial_scale);

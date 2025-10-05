@@ -1,6 +1,10 @@
 #pragma once
 #include <opencv2/core.hpp>
 
+// Segment a frame using K-means clustering with different backends (sequential, threaded, MPI, CUDA)
+// See: clustering_seq.cpp, clustering_thr.cpp, clustering_mpi.cpp, clustering_cuda.cu for implementations
+//      and include/clustering_backends.hpp for declarations/argument meanings
+
 cv::Mat segmentFrameWithKMeans_seq(
 	const cv::Mat& frame,
 	int k,
