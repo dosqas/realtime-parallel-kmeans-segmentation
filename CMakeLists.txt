@@ -26,11 +26,11 @@ add_executable(realtime_parallel_kmeans_segmentation
     src/coreset.cpp
     src/rcc.cpp
     src/utils.cpp
-    src/clustering.cpp
-    seq/clustering_seq.cpp
-    threads/clustering_thr.cpp
-    mpi/clustering_mpi.cpp
-    gpu/clustering_cuda.cu
+    src/clustering/clustering_entry.cpp
+    src/clustering/clustering_seq.cpp
+    src/clustering/clustering_mpi.cpp
+    src/clustering/clustering_thr.cpp
+    src/clustering/clustering_cuda.cu
 )
 
 set_source_files_properties(gpu/clustering_cuda.cu PROPERTIES LANGUAGE CUDA)
