@@ -4,10 +4,11 @@
 #include <mpi.h>
 
 // Entry point
-int main(
-	int argc, 
-	char** argv) 
+int main(int argc, char** argv) 
 {
+	// Prevent OpenCV from inserting logs in the console
+	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);
+
 	// Initialize our MPI environment
     MPI_Init(&argc, &argv);
 

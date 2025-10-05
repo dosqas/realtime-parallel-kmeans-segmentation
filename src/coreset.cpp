@@ -4,9 +4,7 @@
 #include <iostream>
 
 // Build a coreset by randomly sampling `sample_size` pixels from the frame and 
-Coreset buildCoresetFromFrame(
-    const cv::Mat& frame, 
-    int sample_size) 
+Coreset buildCoresetFromFrame(const cv::Mat& frame, int sample_size) 
 {
     Coreset coreset;
 
@@ -38,10 +36,7 @@ Coreset buildCoresetFromFrame(
     return coreset;
 }
 
-Coreset mergeCoresets(
-    const Coreset& A, 
-    const Coreset& B, 
-    int sample_size) 
+Coreset mergeCoresets(const Coreset& A, const Coreset& B, int sample_size) 
 {
     Coreset merged;
 

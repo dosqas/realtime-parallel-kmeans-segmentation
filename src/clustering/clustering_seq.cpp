@@ -58,5 +58,3 @@ cv::Mat segmentFrameWithKMeans_seq(
 
 	return out;
 }
-
-

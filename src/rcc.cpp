@@ -3,8 +3,7 @@
 #include <unordered_set>
 
 // Delete a subtree of our RCC. Used in cleaning up when deleting and pruning the RCC
-static void deleteSubtree(
-    RCCNode* node) 
+static void deleteSubtree(RCCNode* node) 
 {
 	if (!node) return;              // Base case - RCCNode is null, meaning we reached the end of the tree
     deleteSubtree(node->left);      // Recursively call the delete function on the left
@@ -13,9 +12,7 @@ static void deleteSubtree(
 }
 
 // Insert a leaf in the RCC tree, merging as necessary to maintain structure
-void RCC::insertLeaf(
-    const Coreset& leafCoreset, 
-    int sample_size) 
+void RCC::insertLeaf(const Coreset& leafCoreset, int sample_size) 
 {
 	RCCNode* carry = new RCCNode(leafCoreset); // New leaf node to insert
 
@@ -58,10 +55,7 @@ void RCC::insertLeaf(
 
 // Merge two RCC nodes A and B into one by merging their coresets and creating a new parent node
 // having A and B as children
-RCCNode* RCC::mergeNodes(
-    RCCNode* nodeA,
-    RCCNode* nodeB, 
-    int sample_size) 
+RCCNode* RCC::mergeNodes(RCCNode* nodeA, RCCNode* nodeB, int sample_size) 
 {
     if (!nodeA) return nodeB;
     if (!nodeB) return nodeA;
