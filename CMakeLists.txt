@@ -37,6 +37,8 @@ add_executable(realtime_parallel_kmeans_segmentation
     src/clustering/clustering_mpi.cpp
     src/clustering/clustering_thr.cpp
     src/clustering/clustering_cuda.cu
+
+    cpp.hint
 )
 
 # CUDA properties to ensure proper compilation (we must compile our .cu files with the CUDA compiler)

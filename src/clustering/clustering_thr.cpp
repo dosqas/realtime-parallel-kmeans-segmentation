@@ -6,7 +6,15 @@
 #include <thread>
 #include <vector>
 
-// Worker function: process rows [rStart, rEnd)
+// Worker function used to process a range of rows in the image
+//
+// Args:
+//   frame: input image (cv::Mat, 3-channel BGR)
+//   out: output segmented image (cv::Mat, 3-channel BGR)
+//   centers: K-means centers (vector of 5D feature vectors)
+//   rStart, rEnd: range of rows [rStart, rEnd) to process
+//   color_scale: scaling factor for the color dimensions in the feature vectors
+//   spatial_scale: scaling factor for the spatial dimensions in the feature vectors
 static void processRows(
     const cv::Mat& frame, 
     cv::Mat& out,
@@ -67,7 +75,7 @@ cv::Mat segmentFrameWithKMeans_thr(
     float color_scale,
     float spatial_scale)
 {
-    CV_Assert(frame.type() == CV_8UC3);
+    CV_Assert(frame.type() == CV_8UC3); // Ensure input is 3-channel BGR image
 
     // Compute K-means centers using a coreset of the frame
     std::vector<cv::Vec<float, 5>> centers =
