@@ -12,24 +12,25 @@ static void deleteSubtree(
     delete node;                    // Once we return from the recursion, we delete the node
 }
 
-// Insert a leaf
+// Insert a leaf in the RCC tree, merging as necessary to maintain structure
 void RCC::insertLeaf(
     const Coreset& leafCoreset, 
     int sample_size) 
 {
-    RCCNode* carry = new RCCNode(leafCoreset);
+	RCCNode* carry = new RCCNode(leafCoreset); // New leaf node to insert
 
     if (levels.empty()) {
         levels.assign(std::max(1, this->max_levels), nullptr);
     }
 
     for (int lvl = 0; lvl < (int)levels.size(); ++lvl) {
+		// If level is empty, place carry here and stop
         if (!levels[lvl]) {
             levels[lvl] = carry;
             carry = nullptr;
             break;
         } else {
-            carry = mergeNodes(levels[lvl], carry, sample_size);
+			carry = mergeNodes(levels[lvl], carry, sample_size); // Merge carry with existing node at this level
             levels[lvl] = nullptr;
         }
     }
@@ -38,8 +39,8 @@ void RCC::insertLeaf(
     if (carry) {
         // bounded cap: merge into top level and replace
         if (levels.back()) {
-            carry = mergeNodes(levels.back(), carry, sample_size);
-            deleteSubtree(levels.back());
+			carry = mergeNodes(levels.back(), carry, sample_size); // Merge with existing top level
+			deleteSubtree(levels.back()); // Delete the old top level subtree to avoid memory leak
         }
         levels.back() = carry;
     }
@@ -48,11 +49,15 @@ void RCC::insertLeaf(
     RCCNode* newRoot = nullptr;
     for (int lvl = 0; lvl < (int)levels.size(); ++lvl) {
         if (!levels[lvl]) continue;
-        newRoot = newRoot ? mergeNodes(newRoot, levels[lvl], sample_size) : levels[lvl];
+
+        // Merge into new root if not null, else set as root
+		newRoot = newRoot ? mergeNodes(newRoot, levels[lvl], sample_size) : levels[lvl];
     }
     root = newRoot;
 }
 
+// Merge two RCC nodes A and B into one by merging their coresets and creating a new parent node
+// having A and B as children
 RCCNode* RCC::mergeNodes(
     RCCNode* nodeA,
     RCCNode* nodeB, 
@@ -60,23 +65,27 @@ RCCNode* RCC::mergeNodes(
 {
     if (!nodeA) return nodeB;
     if (!nodeB) return nodeA;
-    Coreset merged = mergeCoresets(nodeA->coreset, nodeB->coreset, sample_size);
-    RCCNode* parent = new RCCNode(merged);
+
+	Coreset merged = mergeCoresets(nodeA->coreset, nodeB->coreset, sample_size); // Merge the coresets of A and B
+	RCCNode* parent = new RCCNode(merged); // Create a new parent node with the merged coreset
     parent->left = nodeA;
     parent->right = nodeB;
+
     return parent;
 }
 
+// Get the coreset at the root of the RCC tree
 Coreset RCC::getRootCoreset() const 
 {
-    if (!root) return Coreset{};
+	if (!root) return Coreset{}; // Return empty coreset if tree is empty
+
     return root->coreset;
 }
 
 RCC::~RCC() 
 {
-    // Delete unique subtrees from the level array to avoid double-free
-    // Track deletions by marking pointers we already removed.
+	// Delete unique subtrees from the level array to avoid double-free errors.
+    // Track deletions by marking pointers we already removed
     std::unordered_set<RCCNode*> seen;
     for (RCCNode* node : levels) {
         if (node && !seen.count(node)) {
@@ -84,6 +93,7 @@ RCC::~RCC()
             seen.insert(node);
         }
     }
+
     // In case levels wasn't used, ensure root is deleted.
     if (!levels.size() && root) {
         deleteSubtree(root);
