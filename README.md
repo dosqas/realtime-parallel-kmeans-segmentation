@@ -250,10 +250,17 @@ realtime-parallel-kmeans-segmentation/
 │   ├── utils.cpp                    # Utility functions
 │   └── video_io.cpp                 # Video I/O implementation
 ├── 📁 docs/                         # Documentation
+│   ├── project__demo.gif            # Program demonstration GIF
+├── 📁 docs/                         # Documentation
 │   ├── algorithms.md                # Algorithm descriptions
 │   ├── parallelization.md           # Synchronization details
 │   └── performance.md               # Performance analysis
 ├── 📁 tests/                        # Test files
+│   ├── test_clustering.cpp          # Clustering tests
+│   ├── test_coreset.cpp             # Coreset tests
+│   ├── test_rcc_.cpp                # RCC tree tests
+│   ├── test_utils.cpp               # Utility tests
+│   └── test_video_io_.cpp           # Video I/O tests
 ├── CMakeLists.txt                   # Build configuration
 ├── LICENSE                          # MIT License
 └── README.md                        # This file
