@@ -131,7 +131,7 @@ realtime_segmentation.exe  # Windows
 | **'3'** | Switch to Multi-threaded backend |
 | **'4'** | Switch to CUDA backend |
 | **ESC** | Exit application |
-| **K Slider** | Adjust cluster count (1-12) |
+| **K Slider** | Adjust cluster count (2-12) |
 
 ---
 
