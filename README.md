@@ -2,6 +2,9 @@
 
 A high-performance computer vision system that performs real-time image segmentation using K-Means clustering with multiple parallel backends for optimal performance across different hardware configurations.
 
+![Project demo](./demo/project_demo.gif)
+*Real-time parallel K-means clustering: original vs segmented frames with dynamic K-value control via slider*
+
 ---
 
 ## ✨ Key Features
