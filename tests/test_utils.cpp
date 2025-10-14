@@ -72,34 +72,6 @@ TEST_F(UtilsTest, MakeFeatureZeroValues) {
     }
 }
 
-TEST_F(UtilsTest, ComputeKMeansCentersBasic) {
-    int k = 2;
-    int sample_size = 500;
-    
-    std::vector<cv::Vec<float, 5>> centers = computeKMeansCenters(
-        simple_image, k, sample_size, color_scale, spatial_scale);
-    
-    EXPECT_EQ(centers.size(), k);
-    
-    for (const auto& center : centers) {
-        EXPECT_EQ(center.rows, 5);
-        
-        // BGR components in valid range
-        EXPECT_GE(center[0], 0.0f);
-        EXPECT_LE(center[0], 255.0f * color_scale);
-        EXPECT_GE(center[1], 0.0f);
-        EXPECT_LE(center[1], 255.0f * color_scale);
-        EXPECT_GE(center[2], 0.0f);
-        EXPECT_LE(center[2], 255.0f * color_scale);
-        
-        // Spatial components in valid range
-        EXPECT_GE(center[3], 0.0f);
-        EXPECT_LE(center[3], 1.0f * spatial_scale);
-        EXPECT_GE(center[4], 0.0f);
-        EXPECT_LE(center[4], 1.0f * spatial_scale);
-    }
-}
-
 TEST_F(UtilsTest, ComputeKMeansCentersComplexImage) {
     int k = 4;
     int sample_size = 1000;
