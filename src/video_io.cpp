@@ -161,8 +161,8 @@ void showWebcamFeed()
             char c = (char)cv::waitKey(1);
             if (c == 27) break; // ESC
             if (c == '1') backend = BACKEND_SEQ;
-            if (c == '2') backend = BACKEND_MPI;
-            if (c == '3') backend = BACKEND_THR;
+            if (c == '2') backend = BACKEND_THR;
+            if (c == '3') backend = BACKEND_MPI;
             if (c == '4') backend = BACKEND_CUDA;
         }
 

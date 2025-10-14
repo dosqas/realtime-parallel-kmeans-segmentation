@@ -10,7 +10,7 @@ A high-performance computer vision system that performs real-time image segmenta
 ## ✨ Key Features
 
 - **🚀 Real-Time Performance**: Up to 55+ FPS with CUDA backend on live webcam feeds
-- **🔧 Multiple Parallel Backends**: Sequential, Multi-threaded, MPI, and CUDA implementations
+- **🔧 Multiple Parallel Backends**: Sequential, Multi-threaded, MPI + OpenMP, and CUDA implementations
 - **🌳 RCC Tree Optimization**: Recursive Cached Coreset tree for efficient streaming segmentation
 - **🎯 5D Feature Space**: Combines color (BGR) and spatial (x,y) features for coherent segmentation
 - **⚡ Dynamic Backend Switching**: Switch between backends in real-time with keyboard shortcuts
@@ -38,19 +38,19 @@ This project implements an advanced K-Means clustering system optimized for real
 | Backend | K=2 (Min FPS) | K=2 (Max FPS) | K=12 (Min FPS) | K=12 (Max FPS) | Performance Ratio |
 |---------|---------------|---------------|----------------|----------------|-------------------|
 | **Sequential** | 15 | 17 | 5 | 6 | 1.0× (baseline) |
-| **MPI** | 13 | 31 | 10 | 13 | 1.8× average |
 | **Multi-threaded** | 14 | 44 | 10 | 22 | 2.4× average |
-| **CUDA** | 14 | 55 | 15 | 44 | **3.2× average** |
+| **MPI** | 17 | 44 | 13 | 21 | 2.6× average |
+| **CUDA** | 14 | 55 | 15 | 44 | 3.2× average |
 
 ### Performance Characteristics
 
 ```
 Performance Improvement Factor (vs Sequential):
 ┌─────────────────────────────────────────────────┐
-│ CUDA:          ████████████████ 3.2×           │
-│ Multi-thread:  ████████████ 2.4×               │
-│ MPI:           ███████ 1.8×                     │
-│ Sequential:    ████ 1.0× (baseline)            │
+│ CUDA:          ████████████████ 3.2×            │
+│ MPI:           ██████████████ 2.6×              │
+│ Multi-thread:  ████████████ 2.4×                │
+│ Sequential:    ████ 1.0× (baseline)             │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -77,9 +77,9 @@ Performance Improvement Factor (vs Sequential):
 - **Best For**: Multi-core desktop systems
 
 #### 🌐 Distributed (MPI + OpenMP)
-- **Strategy**: Process-level distribution with thread-level parallelization
-- **Communication**: MPI_Bcast for centers, MPI_Gatherv for results
-- **Hybrid Approach**: Combines inter-process and intra-process parallelism
+- **Strategy**: Master-Worker pattern combining process-level (MPI) distribution of rows with thread-level (OpenMP) parallelization within each process.
+- **Communication**: Uses MPI_Bcast to distribute cluster centers, frame data, and control parameters (k, dimensions, stop flag) and MPI_Gatherv for efficient, variable-sized result aggregation.
+- **Hybrid Approach**: MPI collective calls act as synchronization barriers, ensuring data consistency across the network.
 - **Best For**: HPC clusters and large distributed systems
 
 #### 🎮 GPU-accelerated (CUDA)
@@ -100,7 +100,7 @@ Performance Improvement Factor (vs Sequential):
 - CMake 3.18+
 - OpenCV 4.0+
 - CUDA Toolkit (for GPU backend)
-- MPI implementation (for distributed backend)
+- MPI implementation (e.g., OpenMPI/MS-MPI for distributed backend)
 ```
 
 ### Building the Project
@@ -119,10 +119,11 @@ cmake ..
 # Build the project
 cmake --build . --config Release
 
-# Run the application
-./realtime_segmentation  # Linux/Mac
-# or
-realtime_segmentation.exe  # Windows
+# Change to the output directory
+cd out/build/x64-Debug
+
+# Run the application ()
+mpiexec -n <number_of_processes> realtime_parallel_kmeans_segmentation.exe
 ```
 
 ### Runtime Controls
@@ -130,8 +131,8 @@ realtime_segmentation.exe  # Windows
 | Key | Action |
 |-----|--------|
 | **'1'** | Switch to Sequential backend |
-| **'2'** | Switch to MPI backend |
-| **'3'** | Switch to Multi-threaded backend |
+| **'2'** | Switch to Multi-threaded backend |
+| **'3'** | Switch to MPI backend |
 | **'4'** | Switch to CUDA backend |
 | **ESC** | Exit application |
 | **K Slider** | Adjust cluster count (2-12) |
@@ -164,7 +165,7 @@ const int default_sample = 2000; // Default coreset size
 
 | FPS Range | Classification | User Experience | Recommended Backends |
 |-----------|----------------|-----------------|----------------------|
-| **30+ FPS** | Excellent | Smooth real-time | CUDA, Multi-threaded (K≤8) |
+| **30+ FPS** | Excellent | Smooth real-time | CUDA, Multi-threaded, MPI Hybrid (K≤8) |
 | **20-30 FPS** | Good | Acceptable real-time | Multi-threaded, MPI (K≤6) |
 | **10-20 FPS** | Fair | Noticeable lag | All backends (K≤4) |
 | **<10 FPS** | Poor | Choppy playback | Sequential only (high K) |
