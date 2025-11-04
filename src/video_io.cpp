@@ -70,34 +70,48 @@ void showWebcamFeed()
     Backend lastBackend = backend;
     int last_k_trackbar = k_trackbar;
 
+    bool useThreadPool = false; // Toggle flag for thread pool
+
     while (true) {
         if (rank == 0) {
             cap >> frame;
             if (frame.empty()) break; // Exit if window is closed
         }
 
-        // Broadcast frame dimensions
-        int rows = (rank == 0 ? frame.rows : 0);
-        int cols = (rank == 0 ? frame.cols : 0);
-        int type = (rank == 0 ? frame.type() : 0);
-		// Bcast rows, cols, and type to all ranks
-		// The root (in our case 0), is the one sending the data to all the other processes
-		// Other ranks will receive the data
-		// All the processes have to call Bcast so that MPI knows who is participating in the communication
-        MPI_Bcast(&rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&type, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-        if (rows == 0 || cols == 0) break;
-
-        if (rank != 0) frame.create(rows, cols, type);
-        MPI_Bcast(frame.data, rows * frame.step, MPI_BYTE, 0, MPI_COMM_WORLD);
-
-        // Get current K from trackbar (only on rank 0)
         int k = k_trackbar;
-        MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-        cv::Mat seg = segmentFrameWithKMeans(frame, k, sample, backend, color_scale, spatial_scale);
+        if (backend == BACKEND_MPI) {
+            // Broadcast frame dimensions
+            int rows = (rank == 0 ? frame.rows : 0);
+            int cols = (rank == 0 ? frame.cols : 0);
+            int type = (rank == 0 ? frame.type() : 0);
+            // Bcast rows, cols, and type to all ranks
+            // The root (in our case 0), is the one sending the data to all the other processes
+            // Other ranks will receive the data
+            // All the processes have to call Bcast so that MPI knows who is participating in the communication
+            MPI_Bcast(&rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&type, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+            if (rows == 0 || cols == 0) break;
+
+            if (rank != 0) frame.create(rows, cols, type);
+            MPI_Bcast(frame.data, rows * frame.step, MPI_BYTE, 0, MPI_COMM_WORLD);
+
+            MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        }
+
+        cv::Mat seg;
+        if (backend == BACKEND_MPI) {
+            // All ranks participate
+            seg = segmentFrameWithKMeans(frame, k, sample, backend, color_scale, spatial_scale);
+        }
+        else {
+            // Only rank 0 runs segmentation for non-MPI backends
+            if (rank == 0) {
+                seg = segmentFrameWithKMeans(frame, k, sample, backend, color_scale, spatial_scale);
+            }
+        }
 
         if (rank == 0) {
             if (seg.size() != frame.size()) {
@@ -115,8 +129,23 @@ void showWebcamFeed()
             lastTick = now;
             if (dt > 0) fps = 1.0 / dt;
 
-        // Reset FPS history if backend changed or if K changed
-            if (backend != lastBackend || k_trackbar != last_k_trackbar) {
+            // Reset FPS history if backend changed
+            if (backend != lastBackend) {
+                fpsHistory.clear();
+                minFps = maxFps = fps;
+
+                // If we were using THRPOOL and now switched to something that's not THR, reset useThreadPool
+                if (lastBackend == BACKEND_THRPOOL && backend != BACKEND_THR) {
+                    useThreadPool = false;
+                }
+
+                lastBackend = backend;
+                last_k_trackbar = k_trackbar;
+            }
+
+
+            // Reset FPS history if K changed
+            if (k_trackbar != last_k_trackbar) {
                 fpsHistory.clear();
                 minFps = maxFps = fps;
                 lastBackend = backend;
@@ -137,8 +166,8 @@ void showWebcamFeed()
             }
 
             std::string backendName =
-                (backend == BACKEND_SEQ ? "SEQ" : backend == BACKEND_CUDA ? "CUDA"
-                    : backend == BACKEND_THR ? "THR" : "MPI");
+                (backend == BACKEND_SEQ ? "SEQ" : backend == BACKEND_THR ? "THR"
+                    : backend == BACKEND_MPI ? "MPI" : backend == BACKEND_CUDA ? "CUDA" : "THRPOOL");
 
             std::string overlay = "k=" + std::to_string(k) +
                 "  backend=" + backendName +
@@ -161,18 +190,22 @@ void showWebcamFeed()
             char c = (char)cv::waitKey(1);
             if (c == 27) break; // ESC
             if (c == '1') backend = BACKEND_SEQ;
-            if (c == '2') backend = BACKEND_THR;
+            if (c == '2' && backend != BACKEND_THRPOOL) backend = BACKEND_THR;
             if (c == '3') backend = BACKEND_MPI;
             if (c == '4') backend = BACKEND_CUDA;
-        }
 
-        // Broadcast backend and break state
-        MPI_Bcast(&backend, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        int stopFlag = 0;
-        if (rank == 0 && (cv::getWindowProperty(windowName, cv::WND_PROP_VISIBLE) < 1))
-            stopFlag = 1;
-        MPI_Bcast(&stopFlag, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        if (stopFlag) break;
+            if (c == '*' && (backend == BACKEND_THR || backend == BACKEND_THRPOOL)) {
+                useThreadPool = !useThreadPool;
+                useThreadPool ? backend = BACKEND_THRPOOL : backend = BACKEND_THR;
+            }
+        }
+            // Broadcast backend and break state
+            MPI_Bcast(&backend, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            int stopFlag = 0;
+            if (rank == 0 && (cv::getWindowProperty(windowName, cv::WND_PROP_VISIBLE) < 1))
+                stopFlag = 1;
+            MPI_Bcast(&stopFlag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            if (stopFlag) break;
     }
 
     if (rank == 0) {

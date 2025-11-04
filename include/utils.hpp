@@ -35,3 +35,22 @@ std::vector<cv::Vec<float, 5>> computeKMeansCenters(
 	float color_scale = 1.0f,
 	float spatial_scale = 0.5f
 );
+
+// Worker function used to process a range of rows in the image (used in both multithreaded implementations)
+//
+// Args:
+//   frame: input image (cv::Mat, 3-channel BGR)
+//   out: output segmented image (cv::Mat, 3-channel BGR)
+//   centers: K-means centers (vector of 5D feature vectors)
+//   rStart, rEnd: range of rows [rStart, rEnd) to process
+//   color_scale: scaling factor for the color dimensions in the feature vectors
+//   spatial_scale: scaling factor for the spatial dimensions in the feature vectors
+void processRows(
+	const cv::Mat& frame,
+	cv::Mat& out,
+	const std::vector<cv::Vec<float, 5>>& centers,
+	int rStart,
+	int rEnd,
+	float color_scale,
+	float spatial_scale
+);

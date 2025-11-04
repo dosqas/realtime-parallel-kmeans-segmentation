@@ -48,7 +48,7 @@ add_library(kmeans_core
     src/clustering/clustering_mpi.cpp
     src/clustering/clustering_thr.cpp
     src/clustering/clustering_cuda.cu
-)
+ "src/clustering/clustering_thrpool.cpp" )
 
 # CUDA properties to ensure proper compilation (must compile .cu files with the CUDA compiler)
 set_source_files_properties(src/clustering/clustering_cuda.cu PROPERTIES LANGUAGE CUDA)
@@ -71,7 +71,7 @@ target_link_libraries(kmeans_core
 add_executable(realtime_parallel_kmeans_segmentation
     src/main.cpp
     cpp.hint
-)
+ "src/clustering/clustering_thrpool.cpp" )
 
 # Set CUDA properties for the main executable
 set_target_properties(realtime_parallel_kmeans_segmentation PROPERTIES CUDA_ARCHITECTURES "native")
@@ -89,7 +89,7 @@ file(GLOB TEST_SOURCES
 )
 
 # Define the test executable
-add_executable(run_tests ${TEST_SOURCES})
+add_executable(run_tests ${TEST_SOURCES} "src/clustering/clustering_thrpool.cpp" )
 
 # Link the test executable with GTest, core library, and dependencies
 target_link_libraries(run_tests

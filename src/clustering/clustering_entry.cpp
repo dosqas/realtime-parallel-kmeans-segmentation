@@ -20,6 +20,8 @@ cv::Mat segmentFrameWithKMeans(
         return segmentFrameWithKMeans_mpi(frame, k, sample_size, color_scale, spatial_scale);
     case BACKEND_CUDA:
         return segmentFrameWithKMeans_cuda(frame, k, sample_size, color_scale, spatial_scale);
+    case BACKEND_THRPOOL:
+        return segmentFrameWithKMeans_thrpool(frame, k, sample_size, color_scale, spatial_scale);
     default:
         throw std::invalid_argument("Unknown backend type in segmentFrameWithKMeans");
     }

@@ -2,8 +2,8 @@
 #include <opencv2/core.hpp>
 
 // Backend options for k-means segmentation
-// Sequential (CPU), CUDA (GPU), Threaded (CPU multi-threading), MPI (distributed)
-enum Backend { BACKEND_SEQ = 0, BACKEND_CUDA = 1, BACKEND_THR = 2, BACKEND_MPI = 3 };
+// Sequential (CPU), Threaded (CPU multi-threading), MPI (distributed), CUDA (GPU), Thread Pool (CPU with thread pool)
+enum Backend { BACKEND_SEQ = 0, BACKEND_THR = 1, BACKEND_MPI = 2, BACKEND_CUDA = 3, BACKEND_THRPOOL = 4 };
 
 // Segment a frame using k-means clustering with the specified backend
 //
