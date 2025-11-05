@@ -11,6 +11,9 @@
 *.sln.docstates
 *.env
 
+# File used to specify the number of processes per host
+hosts.txt
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
