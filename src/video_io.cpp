@@ -1,6 +1,7 @@
 #include "video_io.hpp"
 #include <opencv2/opencv.hpp>
 #include "clustering.hpp"
+#include "utils.hpp"
 #include <iostream>
 #include <string>
 #include <deque>
@@ -41,7 +42,7 @@ void showWebcamFeed()
 
     // GUI initialization only on rank 0
     if (rank == 0) {
-        cv::namedWindow(windowName, cv::WINDOW_NORMAL);
+        cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);
         cv::createTrackbar("k", windowName, &k_trackbar, k_max);
         cv::setTrackbarMin("k", windowName, k_min);
 
@@ -80,36 +81,90 @@ void showWebcamFeed()
 
         int k = k_trackbar;
 
-        if (backend == BACKEND_MPI) {
-            // Broadcast frame dimensions
-            int rows = (rank == 0 ? frame.rows : 0);
-            int cols = (rank == 0 ? frame.cols : 0);
-            int type = (rank == 0 ? frame.type() : 0);
-            // Bcast rows, cols, and type to all ranks
-            // The root (in our case 0), is the one sending the data to all the other processes
-            // Other ranks will receive the data
-            // All the processes have to call Bcast so that MPI knows who is participating in the communication
-            MPI_Bcast(&rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
-            MPI_Bcast(&cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
-            MPI_Bcast(&type, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-            if (rows == 0 || cols == 0) break;
-
-            if (rank != 0) frame.create(rows, cols, type);
-            MPI_Bcast(frame.data, rows * frame.step, MPI_BYTE, 0, MPI_COMM_WORLD);
-
-            MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        }
-
+        cv::Mat localFrame;
         cv::Mat seg;
-        if (backend == BACKEND_MPI) {
-            // All ranks participate
-            seg = segmentFrameWithKMeans(frame, k, sample, backend, color_scale, spatial_scale);
+        int totalRows = 0, totalCols = 0;
+
+        if (backend == BACKEND_MPI)
+        {
+            // Broadcast frame dimensions
+            totalRows = (rank == 0 ? frame.rows : 0);
+            totalCols = (rank == 0 ? frame.cols : 0);
+            int type = (rank == 0 ? frame.type() : 0);
+
+            MPI_Bcast(&totalRows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&totalCols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&type, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&k, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+            if (totalRows == 0 || totalCols == 0)
+                break;
+
+            // Compute KMeans centers on rank 0
+            // We do it here since we need the centers based on the whole frame,
+            // so we cannot include it in the MPI's segment frame with K means function
+            std::vector<float> flatCenters(k * 5);
+
+            if (rank == 0) {
+                auto centers = computeKMeansCenters(frame, k, sample, color_scale, spatial_scale);
+
+                for (int i = 0; i < k; ++i)
+                    for (int d = 0; d < 5; ++d)
+                        flatCenters[static_cast<std::vector<float, std::allocator<float>>::size_type>(i) * 5 + d] = centers[i][d];
+            }
+
+            // Broadcast the centers to all ranks
+            MPI_Bcast(flatCenters.data(), k * 5, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+            // Scatter local rows to each rank
+            int rowsPerRank = totalRows / size;
+            std::vector<int> sendCounts(size), displs(size);
+
+            // Prepare arrays for Scatterv: number of elements and offsets per rank
+            for (int i = 0; i < size; ++i) {
+                int sRow = i * rowsPerRank;
+                int eRow = (i == size - 1 ? totalRows : sRow + rowsPerRank);
+                sendCounts[i] = (eRow - sRow) * totalCols * 3;
+                displs[i] = sRow * totalCols * 3;
+            }
+
+            // Calculate number of rows per rank
+            int startRow = rank * rowsPerRank;
+            int endRow = (rank == size - 1 ? totalRows : startRow + rowsPerRank);
+            int localRows = endRow - startRow;
+
+            localFrame.create(localRows, totalCols, type);
+
+            // Scatter frame chunks from rank 0 to all ranks
+            MPI_Scatterv(
+                rank == 0 ? frame.data : nullptr,  // send buffer on root
+                sendCounts.data(),                 // elements per rank
+                displs.data(),                     // offsets per rank
+                MPI_UNSIGNED_CHAR,                 // data type
+                localFrame.data,                   // receive buffer
+                sendCounts[rank],                  // elements received by this rank
+                MPI_UNSIGNED_CHAR,                 // data type
+                0,                                 // root rank
+                MPI_COMM_WORLD
+            );
+
+            // Do segmentation using localFrame + received centers
+            seg = segmentFrameWithKMeans(
+                localFrame,
+                k,
+                backend,
+                sample,
+                color_scale,
+                spatial_scale,
+                flatCenters,
+                totalRows,
+                totalCols
+            );
         }
         else {
             // Only rank 0 runs segmentation for non-MPI backends
             if (rank == 0) {
-                seg = segmentFrameWithKMeans(frame, k, sample, backend, color_scale, spatial_scale);
+                seg = segmentFrameWithKMeans(frame, k, backend, sample, color_scale, spatial_scale);
             }
         }
 

@@ -5,10 +5,13 @@
 cv::Mat segmentFrameWithKMeans(
     const cv::Mat& frame,
     int k,
-    int sample_size,
     Backend backend,
+    int sample_size,
     float color_scale,
-    float spatial_scale)
+    float spatial_scale,
+    const std::vector<float>& flatCenters,
+    int totalRows,
+    int totalCols)
 {
 	// Dispatch to the appropriate backend implementation
     switch (backend) {
@@ -17,7 +20,7 @@ cv::Mat segmentFrameWithKMeans(
     case BACKEND_THR:
         return segmentFrameWithKMeans_thr(frame, k, sample_size, color_scale, spatial_scale);
     case BACKEND_MPI:
-        return segmentFrameWithKMeans_mpi(frame, k, sample_size, color_scale, spatial_scale);
+        return segmentFrameWithKMeans_mpi(frame, k, color_scale, spatial_scale, flatCenters, totalRows, totalCols);
     case BACKEND_CUDA:
         return segmentFrameWithKMeans_cuda(frame, k, sample_size, color_scale, spatial_scale);
     case BACKEND_THRPOOL:

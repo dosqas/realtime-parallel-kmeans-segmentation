@@ -24,9 +24,11 @@ cv::Mat segmentFrameWithKMeans_thr(
 cv::Mat segmentFrameWithKMeans_mpi(
 	const cv::Mat& frame,
 	int k,
-	int sample_size,
 	float color_scale = 1.0f,
-	float spatial_scale = 0.5f
+	float spatial_scale = 0.5f,
+	const std::vector<float>& flatCenters = std::vector<float>(),
+	int totalRows = 0,
+	int totalCols = 0
 );
 
 cv::Mat segmentFrameWithKMeans_cuda(
