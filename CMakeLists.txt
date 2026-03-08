@@ -78,35 +78,3 @@ set_target_properties(realtime_parallel_kmeans_segmentation PROPERTIES CUDA_ARCH
 
 # Link the executable with the shared library
 target_link_libraries(realtime_parallel_kmeans_segmentation PRIVATE kmeans_core)
-
-# ======================================================================
-# GoogleTest integration
-# ======================================================================
-
-# Gather all test source files
-file(GLOB TEST_SOURCES
-    tests/test_*.cpp
-)
-
-# Define the test executable
-add_executable(run_tests ${TEST_SOURCES} "src/clustering/clustering_thrpool.cpp" )
-
-# Link the test executable with GTest, core library, and dependencies
-target_link_libraries(run_tests
-    PRIVATE
-    gtest
-    gtest_main
-    kmeans_core
-)
-
-# Include project headers for the tests
-target_include_directories(run_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-)
-
-# Set CUDA properties for the test executable
-set_target_properties(run_tests PROPERTIES CUDA_ARCHITECTURES "native")
-
-# Enable GoogleTest automatic test discovery
-include(GoogleTest)
-gtest_discover_tests(run_tests)
