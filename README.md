@@ -107,7 +107,7 @@ Performance Improvement Factor (vs Sequential):
 
 ```bash
 # Clone the repository
-git clone https://github.com/dosqas/realtime-parallel-kmeans-segmentation.git
+git clone https://github.com/sebsop/realtime-parallel-kmeans-segmentation.git
 cd realtime-parallel-kmeans-segmentation
 
 # Create build directory
